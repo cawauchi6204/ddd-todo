@@ -3,9 +3,9 @@ import Entity from './Entity'
 /** エンティティ作成時の必須プロパティ一覧 */
 export interface TodoPropertiesEssential {
 	userId: number
-  title: string
-  description: string
-  status: number
+	title: string
+	description: string
+	status: number
 	createdAt: Date
 	updatedAt: Date
 }
@@ -40,6 +40,9 @@ export default class TodoEntity extends Entity<TodoProperties> {
 			throw new Error('TodoEntity: not in repository')
 		}
 		return this.properties.id
+	}
+	get userId(): number {
+		return this.properties.userId
 	}
 	get title(): string {
 		return this.properties.title
