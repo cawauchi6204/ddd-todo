@@ -11,4 +11,3 @@ export const sequelize = new Sequelize(
 		// logging: false
 	}
 )
-console.log('indexの14行目のsequelizeは' + sequelize)
