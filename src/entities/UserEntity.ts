@@ -22,7 +22,7 @@ export interface UserPropertiesAll extends UserProperties {
 	id: number // IDも必須にする
 }
 
-/** 教材カテゴリーエンティティ */
+/** ユーザーエンティティ */
 export default class UserEntity extends Entity<UserProperties> {
 	static factory(properties: UserPropertiesEssential): UserEntity {
 		const allProperties: UserProperties = {
@@ -55,6 +55,9 @@ export default class UserEntity extends Entity<UserProperties> {
 	}
 	get birthday(): Date | undefined {
 		if (this.properties.birthday) return this.properties.birthday
+	}
+	get from(): string {
+		return this.properties.from
 	}
 	get status(): number {
 		return this.properties.status
