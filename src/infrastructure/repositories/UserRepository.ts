@@ -97,8 +97,6 @@ const Model = sequelize.define(
 	}
 ) as ModelStatic
 
-Model.sync({ force: true })
-
 /** 主キー指定でエンティティを取得(型変換関数を渡すことでエンティティの派生型も取得可能) */
 export async function findEntityByPk<Output = UserEntity>(
 	pk: number,
