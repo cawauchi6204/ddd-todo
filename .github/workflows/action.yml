@@ -4,4 +4,6 @@ jobs:
   check-bats-version:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "this is pen"
+      - run: |
+        npm install -g jest
+        node 'node_modules/.bin/jest' test/
