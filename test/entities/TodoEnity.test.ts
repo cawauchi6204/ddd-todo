@@ -2,12 +2,7 @@ import TodoEntity from '../../src/entities/TodoEntity';
 import TodoStatus from '../../src/domain/todo/TodoStatus';
 
 {
-    describe('factory()', () => {
-        testFactory();
-    });
-    describe('_factoryWithAllProperties()', () => {
-        testFactoryWithAllProperties();
-    });
+    describe('factory()', testFactory);
 }
 
 function testFactory() {
@@ -24,8 +19,4 @@ function testFactory() {
             return entity.id;
         }).toThrow();
     });
-}
-
-function testFactoryWithAllProperties() {
-    it('');
 }
