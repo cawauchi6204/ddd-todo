@@ -14,8 +14,6 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   reporter: github-pr-review
                   eslint_flags: './**/*.{vue,ts,js}'
-            - name: Run eslint
-              run: yarn lint
             - name: Run Jest
               run: yarn jest
             - name: Upload test coverage artifact
