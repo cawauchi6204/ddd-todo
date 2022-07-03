@@ -1,12 +1,22 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
 import Hello from "./Hello";
 import Register from "./Register";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-ReactDOM.render(
+const container = document.getElementById('app');
+const root = createRoot(container);
+root.render(
   <React.StrictMode>
-    <Hello />
-    <Register />
-  </React.StrictMode>,
-  document.getElementById("app")
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Hello />} />
+        <Route path="/register" element={<Register />} />
+        {/* <Route path="users" element={<Users />}> */}
+        {/* <Route path="me" element={<OwnUserProfile />} />
+        <Route path=":id" element={<UserProfile />} />
+      </Route> */}
+      </Routes>
+    </BrowserRouter>;
+  </React.StrictMode>
 );

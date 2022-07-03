@@ -29,4 +29,6 @@ const users: User[] = [
 
 app.get('/', (req, res) => {
     res.status(200).send(users);
+}).post('/register', (req, res) => {
+    const { name, email, password } = req.body;
 });
