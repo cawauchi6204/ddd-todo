@@ -1,15 +1,17 @@
 import Sequelize from 'sequelize';
 import { sequelize } from './Repository';
-import TodoEntity from '../../entities/TodoEntity';
+import UserEntity from '../../entity/UserEntity';
 
-const FILE_NAME = 'TodoRepository.ts';
+const FILE_NAME = 'UserRepository.ts';
 
 /** 論理データ→物理データのマッピング情報 */
 export const Fields = {
     id: 'id',
-    user_id: 'user_id',
-    title: 'title',
-    description: 'description',
+    name: 'name',
+    email: 'email',
+    password: 'password',
+    // from: 'from',
+    // birthday: 'birthday',
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -18,23 +20,27 @@ export const Fields = {
 /** ORMから取得されるデータ情報（論理データ）*/
 interface Attributes {
     id?: number;
-    user_id: number;
-    title: string;
-    description: string;
+    name: string;
+    email: string;
+    password: string;
+    // from: string;
+    // birthday?: Date;
     status: number;
-    createdAt: Date;
-    updatedAt: Date;
+    // createdAt: Date;
+    // updatedAt: Date;
 }
 
 /** DB内のカラム情報（物理データ）*/
 interface Instance extends Sequelize.Model, Attributes {
     [Fields.id]: number;
-    [Fields.user_id]: number;
-    [Fields.title]: string;
-    [Fields.description]: string;
+    [Fields.name]: string;
+    [Fields.email]: string;
+    [Fields.password]: string;
+    // [Fields.from]: string;
+    // [Fields.birthday]: Date;
     [Fields.status]: number;
-    [Fields.createdAt]: Date;
-    [Fields.updatedAt]: Date;
+    // [Fields.createdAt]: Date;
+    // [Fields.updatedAt]: Date;
 }
 
 /** findOneなどが正しい型を使う為の静的モデル */
@@ -44,7 +50,7 @@ type ModelStatic = typeof Sequelize.Model & {
 
 /** DBとインスタンスを仲介する */
 const Model = sequelize.define(
-    'todos', // テーブル名
+    'users', // テーブル名
     {
         // カラム情報
         id: {
@@ -53,21 +59,31 @@ const Model = sequelize.define(
             primaryKey: true,
             autoIncrement: true,
         },
-        user_id: {
-            field: Fields.user_id,
-            type: Sequelize.BIGINT({ length: 20 }).UNSIGNED,
-            allowNull: false,
-        },
-        title: {
-            field: Fields.title,
+        name: {
+            field: Fields.name,
             type: Sequelize.DataTypes.STRING(100),
             allowNull: false,
         },
-        description: {
-            field: Fields.description,
-            type: Sequelize.DataTypes.TEXT,
+        email: {
+            field: Fields.email,
+            type: Sequelize.DataTypes.STRING({ length: 255 }),
             allowNull: false,
         },
+        password: {
+            field: Fields.password,
+            type: Sequelize.DataTypes.STRING({ length: 255 }),
+            allowNull: false,
+        },
+        // birthday: {
+        //     field: Fields.birthday,
+        //     type: Sequelize.DataTypes.DATE,
+        //     allowNull: false,
+        // },
+        // from: {
+        //     field: Fields.from,
+        //     type: Sequelize.DataTypes.STRING(100),
+        //     allowNull: false,
+        // },
         status: {
             field: Fields.status,
             type: Sequelize.DataTypes.TINYINT({ length: 3 }).UNSIGNED,
@@ -82,23 +98,23 @@ const Model = sequelize.define(
 ) as ModelStatic;
 
 /** 主キー指定でエンティティを取得(型変換関数を渡すことでエンティティの派生型も取得可能) */
-export async function findEntityByPk<Output = TodoEntity>(pk: number, toType: (e: TodoEntity) => Output = (e: TodoEntity) => e as unknown as Output): Promise<Output> {
+export async function findEntityByPk<Output = UserEntity>(pk: number, toType: (e: UserEntity) => Output = (e: UserEntity) => e as unknown as Output): Promise<Output> {
     throw new Error('要実装');
 }
 
 /** 条件指定で複数エンティティを取得(型変換関数を渡すことでエンティティの派生型も取得可能) */
-export async function findEntitiesBy<Output = TodoEntity>(condition: Condition, toType: (e: TodoEntity) => Output = (e: TodoEntity) => e as unknown as Output): Promise<Output[]> {
+export async function findEntitiesBy<Output = UserEntity>(condition: Condition, toType: (e: UserEntity) => Output = (e: UserEntity) => e as unknown as Output): Promise<Output[]> {
     const instances = await Model.findAll(condition.build());
     return instances.map((i) => toType(Converter.toEntity(i)));
 }
 
 /** 条件指定で複数エンティティ+合計件数を取得(型変換関数を渡すことでエンティティの派生型も取得可能) ※ページネーション用 */
-export async function findAndCountEntitiesBy<Output = TodoEntity>(condition: Condition, toType: (e: TodoEntity) => Output = (e: TodoEntity) => e as unknown as Output): Promise<Output[]> {
+export async function findAndCountEntitiesBy<Output = UserEntity>(condition: Condition, toType: (e: UserEntity) => Output = (e: UserEntity) => e as unknown as Output): Promise<Output[]> {
     throw new Error('要実装');
 }
 
 /** エンティティを保存(UPSERT) */
-export async function saveEntity(entity: TodoEntity): Promise<TodoEntity> {
+export async function saveEntity(entity: UserEntity): Promise<UserEntity> {
     const model = Converter.toInstance(entity);
     const instance = await model.save();
     if (!entity.persisted()) {
@@ -127,7 +143,7 @@ export class Condition {
 /** @private リポジトリ内部だけで利用したい型変換関数郡 */
 class Converter {
     /** entity -> ORMのインスタンスへ変換 */
-    static toInstance(entity: TodoEntity): Instance {
+    static toInstance(entity: UserEntity): Instance {
         // BULK INSERTに対応できるよう、正味の型変換はtoRecord()内で行う
         return Model.build(this.toRecord(entity) as any, {
             isNewRecord: !entity.persisted(),
@@ -135,14 +151,16 @@ class Converter {
     }
 
     /** entity -> ORM内部型(Attributes)へ変換 */
-    static toRecord(entity: TodoEntity): Attributes {
+    static toRecord(entity: UserEntity): Attributes {
         const record: Attributes = {
-            user_id: entity.userId,
-            title: entity.title,
-            description: entity.description,
+            name: entity.name,
+            email: entity.email,
+            password: entity.password,
+            // birthday: entity.birthday,
+            // from: entity.from,
             status: entity.status,
-            createdAt: entity.createdAt,
-            updatedAt: entity.updatedAt,
+            // createdAt: entity.createdAt,
+            // updatedAt: entity.updatedAt,
         };
         if (entity.persisted()) {
             record.id = entity.id;
@@ -150,18 +168,20 @@ class Converter {
         return record;
     }
     /** ORM内部型 -> entityへ変換 */
-    static toEntity(instance: Instance): TodoEntity {
+    static toEntity(instance: Instance): UserEntity {
         if (instance.id === undefined) {
             throw new Error(`${FILE_NAME}: ID is not defined`);
         }
-        return TodoEntity._factoryWithAllProperties({
+        return UserEntity._factoryWithAllProperties({
             id: instance.id,
-            userId: instance.user_id,
-            title: instance.title,
-            description: instance.description,
+            name: instance.name,
+            email: instance.email,
+            password: instance.password,
+            // birthday: instance.birthday,
+            // from: instance.from,
             status: instance.status,
-            createdAt: instance.createdAt,
-            updatedAt: instance.updatedAt,
+            // createdAt: instance.createdAt,
+            // updatedAt: instance.updatedAt,
         });
     }
 }

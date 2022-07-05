@@ -1,8 +1,8 @@
-import TodoEntity from '../../src/entities/TodoEntity';
-import TodoStatus from '../../src/domain/todo/TodoStatus';
+import TodoEntity from '../../../src/entity/TodoEntity';
+import TodoStatus from '../../../src/domain/Todo/TodoStatus';
 
 {
-    describe('factory()', testFactory);
+    describe('testFactory', testFactory);
 }
 
 function testFactory() {

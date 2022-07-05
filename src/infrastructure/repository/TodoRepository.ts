@@ -1,17 +1,15 @@
 import Sequelize from 'sequelize';
 import { sequelize } from './Repository';
-import UserEntity from '../../entities/UserEntity';
+import TodoEntity from '../../entity/TodoEntity';
 
-const FILE_NAME = 'UserRepository.ts';
+const FILE_NAME = 'TodoRepository.ts';
 
 /** 論理データ→物理データのマッピング情報 */
 export const Fields = {
     id: 'id',
-    name: 'name',
-    email: 'email',
-    password: 'password',
-    from: 'from',
-    birthday: 'birthday',
+    user_id: 'user_id',
+    title: 'title',
+    description: 'description',
     status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -20,11 +18,9 @@ export const Fields = {
 /** ORMから取得されるデータ情報（論理データ）*/
 interface Attributes {
     id?: number;
-    name: string;
-    email: string;
-    password: string;
-    from: string;
-    birthday?: Date;
+    user_id: number;
+    title: string;
+    description: string;
     status: number;
     createdAt: Date;
     updatedAt: Date;
@@ -33,11 +29,9 @@ interface Attributes {
 /** DB内のカラム情報（物理データ）*/
 interface Instance extends Sequelize.Model, Attributes {
     [Fields.id]: number;
-    [Fields.name]: string;
-    [Fields.email]: string;
-    [Fields.password]: string;
-    [Fields.from]: string;
-    [Fields.birthday]: Date;
+    [Fields.user_id]: number;
+    [Fields.title]: string;
+    [Fields.description]: string;
     [Fields.status]: number;
     [Fields.createdAt]: Date;
     [Fields.updatedAt]: Date;
@@ -50,7 +44,7 @@ type ModelStatic = typeof Sequelize.Model & {
 
 /** DBとインスタンスを仲介する */
 const Model = sequelize.define(
-    'users', // テーブル名
+    'todos', // テーブル名
     {
         // カラム情報
         id: {
@@ -59,29 +53,19 @@ const Model = sequelize.define(
             primaryKey: true,
             autoIncrement: true,
         },
-        name: {
-            field: Fields.name,
+        user_id: {
+            field: Fields.user_id,
+            type: Sequelize.BIGINT({ length: 20 }).UNSIGNED,
+            allowNull: false,
+        },
+        title: {
+            field: Fields.title,
             type: Sequelize.DataTypes.STRING(100),
             allowNull: false,
         },
-        email: {
-            field: Fields.email,
-            type: Sequelize.DataTypes.STRING({ length: 255 }),
-            allowNull: false,
-        },
-        password: {
-            field: Fields.password,
-            type: Sequelize.DataTypes.STRING({ length: 255 }),
-            allowNull: false,
-        },
-        birthday: {
-            field: Fields.birthday,
-            type: Sequelize.DataTypes.DATE,
-            allowNull: false,
-        },
-        from: {
-            field: Fields.from,
-            type: Sequelize.DataTypes.STRING(100),
+        description: {
+            field: Fields.description,
+            type: Sequelize.DataTypes.TEXT,
             allowNull: false,
         },
         status: {
@@ -98,23 +82,23 @@ const Model = sequelize.define(
 ) as ModelStatic;
 
 /** 主キー指定でエンティティを取得(型変換関数を渡すことでエンティティの派生型も取得可能) */
-export async function findEntityByPk<Output = UserEntity>(pk: number, toType: (e: UserEntity) => Output = (e: UserEntity) => e as unknown as Output): Promise<Output> {
+export async function findEntityByPk<Output = TodoEntity>(pk: number, toType: (e: TodoEntity) => Output = (e: TodoEntity) => e as unknown as Output): Promise<Output> {
     throw new Error('要実装');
 }
 
 /** 条件指定で複数エンティティを取得(型変換関数を渡すことでエンティティの派生型も取得可能) */
-export async function findEntitiesBy<Output = UserEntity>(condition: Condition, toType: (e: UserEntity) => Output = (e: UserEntity) => e as unknown as Output): Promise<Output[]> {
+export async function findEntitiesBy<Output = TodoEntity>(condition: Condition, toType: (e: TodoEntity) => Output = (e: TodoEntity) => e as unknown as Output): Promise<Output[]> {
     const instances = await Model.findAll(condition.build());
     return instances.map((i) => toType(Converter.toEntity(i)));
 }
 
 /** 条件指定で複数エンティティ+合計件数を取得(型変換関数を渡すことでエンティティの派生型も取得可能) ※ページネーション用 */
-export async function findAndCountEntitiesBy<Output = UserEntity>(condition: Condition, toType: (e: UserEntity) => Output = (e: UserEntity) => e as unknown as Output): Promise<Output[]> {
+export async function findAndCountEntitiesBy<Output = TodoEntity>(condition: Condition, toType: (e: TodoEntity) => Output = (e: TodoEntity) => e as unknown as Output): Promise<Output[]> {
     throw new Error('要実装');
 }
 
 /** エンティティを保存(UPSERT) */
-export async function saveEntity(entity: UserEntity): Promise<UserEntity> {
+export async function saveEntity(entity: TodoEntity): Promise<TodoEntity> {
     const model = Converter.toInstance(entity);
     const instance = await model.save();
     if (!entity.persisted()) {
@@ -143,7 +127,7 @@ export class Condition {
 /** @private リポジトリ内部だけで利用したい型変換関数郡 */
 class Converter {
     /** entity -> ORMのインスタンスへ変換 */
-    static toInstance(entity: UserEntity): Instance {
+    static toInstance(entity: TodoEntity): Instance {
         // BULK INSERTに対応できるよう、正味の型変換はtoRecord()内で行う
         return Model.build(this.toRecord(entity) as any, {
             isNewRecord: !entity.persisted(),
@@ -151,13 +135,11 @@ class Converter {
     }
 
     /** entity -> ORM内部型(Attributes)へ変換 */
-    static toRecord(entity: UserEntity): Attributes {
+    static toRecord(entity: TodoEntity): Attributes {
         const record: Attributes = {
-            name: entity.name,
-            email: entity.email,
-            password: entity.password,
-            birthday: entity.birthday,
-            from: entity.from,
+            user_id: entity.userId,
+            title: entity.title,
+            description: entity.description,
             status: entity.status,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
@@ -168,17 +150,15 @@ class Converter {
         return record;
     }
     /** ORM内部型 -> entityへ変換 */
-    static toEntity(instance: Instance): UserEntity {
+    static toEntity(instance: Instance): TodoEntity {
         if (instance.id === undefined) {
             throw new Error(`${FILE_NAME}: ID is not defined`);
         }
-        return UserEntity._factoryWithAllProperties({
+        return TodoEntity._factoryWithAllProperties({
             id: instance.id,
-            name: instance.name,
-            email: instance.email,
-            password: instance.password,
-            birthday: instance.birthday,
-            from: instance.from,
+            userId: instance.user_id,
+            title: instance.title,
+            description: instance.description,
             status: instance.status,
             createdAt: instance.createdAt,
             updatedAt: instance.updatedAt,

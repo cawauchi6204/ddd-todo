@@ -1,4 +1,8 @@
 import express from 'express';
+import UserEntity from '../../entity/UserEntity';
+import * as UserService from '../../application/service/UserService';
+import UserStatus from '../../domain/User/UserStatus';
+
 const app: express.Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,6 +33,13 @@ const users: User[] = [
 
 app.get('/', (req, res) => {
     res.status(200).send(users);
-}).post('/register', (req, res) => {
+}).post('/register', async (req, res) => {
     const { name, email, password } = req.body;
+    const entity = UserEntity.factory({
+        name,
+        email,
+        password,
+        status: UserStatus.ENABLE.value,
+    });
+    await UserService.enrollUser(entity);
 });
